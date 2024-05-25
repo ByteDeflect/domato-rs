@@ -1,0 +1,481 @@
+use std::fmt::Display;
+
+use strum::{EnumString, VariantNames};
+
+#[derive(Clone, Copy, Debug, EnumString, VariantNames)]
+#[strum(serialize_all = "lowercase")]
+pub enum HtmlElement {
+    #[strum(serialize = "a")]
+    Anchor,
+    Area,
+    Audio,
+    Base,
+    Br,
+    Button,
+    Canvas,
+    Content,
+    Data,
+    DataList,
+    Details,
+    Dialog,
+    #[strum(serialize = "dir")]
+    Directory,
+    Div,
+    #[strum(serialize = "dl")]
+    DList,
+    Embed,
+    FieldSet,
+    Font,
+    Form,
+    Frame,
+    FrameSet,
+    #[strum(
+        serialize = "h1",
+        serialize = "h2",
+        serialize = "h3",
+        serialize = "h4",
+        serialize = "h5",
+        serialize = "h6"
+    )]
+    Heading,
+    Hr,
+    IFrame,
+    #[strum(serialize = "image", serialize = "img")]
+    Image,
+    Input,
+    Keygen,
+    Label,
+    Legend,
+    Li,
+    Link,
+    Map,
+    Marquee,
+    Menu,
+    MenuItem,
+    Meta,
+    Meter,
+    #[strum(serialize = "del", serialize = "ins")]
+    Mod,
+    Object,
+    #[strum(serialize = "ol")]
+    OList,
+    OptGroup,
+    Option,
+    Output,
+    #[strum(serialize = "p")]
+    Paragraph,
+    Param,
+    Picture,
+    Pre,
+    Progress,
+    #[strum(serialize = "q")]
+    Quote,
+    Select,
+    Shadow,
+    Source,
+    Span,
+    Style,
+    Table,
+    #[strum(serialize = "caption")]
+    TableCaption,
+    #[strum(serialize = "th")]
+    TableCell,
+    #[strum(serialize = "col")]
+    TableCol,
+    #[strum(serialize = "tr")]
+    TableRow,
+    #[strum(serialize = "tbody", serialize = "tfoot", serialize = "thread")]
+    TableSection,
+    Template,
+    TextArea,
+    Time,
+    Title,
+    Track,
+    #[strum(serialize = "ul")]
+    UList,
+    Video,
+    #[strum(
+        serialize = "abbr",
+        serialize = "acronym",
+        serialize = "applet",
+        serialize = "article",
+        serialize = "aside",
+        serialize = "b",
+        serialize = "basefont",
+        serialize = "bdi",
+        serialize = "bdo",
+        serialize = "bgsound",
+        serialize = "big",
+        serialize = "blockquote",
+        serialize = "center",
+        serialize = "cite",
+        serialize = "code",
+        serialize = "colgroup",
+        serialize = "command",
+        serialize = "dd",
+        serialize = "dfn",
+        serialize = "dt",
+        serialize = "em",
+        serialize = "figcaption",
+        serialize = "figure",
+        serialize = "footer",
+        serialize = "header",
+        serialize = "i",
+        serialize = "isindex",
+        serialize = "kbd",
+        serialize = "layer",
+        serialize = "listing",
+        serialize = "main",
+        serialize = "mark",
+        serialize = "nav",
+        serialize = "nobr",
+        serialize = "noembed",
+        serialize = "noframes",
+        serialize = "nolayer",
+        serialize = "noscript",
+        serialize = "plaintext",
+        serialize = "rp",
+        serialize = "rt",
+        serialize = "ruby",
+        serialize = "s",
+        serialize = "samp",
+        serialize = "section",
+        serialize = "small",
+        serialize = "strike",
+        serialize = "strong",
+        serialize = "sub",
+        serialize = "summary",
+        serialize = "sup",
+        serialize = "td",
+        serialize = "tt",
+        serialize = "u",
+        serialize = "var",
+        serialize = "wbr",
+        serialize = "xmp"
+    )]
+    Unknown,
+}
+
+impl Display for HtmlElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let r = match self {
+            HtmlElement::Anchor => "HTMLAnchorElement",
+            HtmlElement::Area => "HTMLAreaElement",
+            HtmlElement::Audio => "HTMLAudioElement",
+            HtmlElement::Base => "HTMLBaseElement",
+            HtmlElement::Br => "HTMLBRElement",
+            HtmlElement::Button => "HTMLButtonElement",
+            HtmlElement::Canvas => "HTMLCanvasElement",
+            HtmlElement::Content => "HTMLContentElement",
+            HtmlElement::Data => "HTMLDataElement",
+            HtmlElement::DataList => "HTMLDataListElement",
+            HtmlElement::Details => "HTMLDetailsElement",
+            HtmlElement::Dialog => "HTMLDialogElement",
+            HtmlElement::Directory => "HTMLDirectoryElement",
+            HtmlElement::Div => "HTMLDivElement",
+            HtmlElement::DList => "HTMLDListElement",
+            HtmlElement::Embed => "HTMLEmbedElement",
+            HtmlElement::FieldSet => "HTMLFieldSetElement",
+            HtmlElement::Font => "HTMLFontElement",
+            HtmlElement::Form => "HTMLFormElement",
+            HtmlElement::Frame => "HTMLFrameElement",
+            HtmlElement::FrameSet => "HTMLFrameSetElement",
+            HtmlElement::Heading => "HTMLHeadingElement",
+            HtmlElement::Hr => "HTMLHRElement",
+            HtmlElement::IFrame => "HTMLIFrameElement",
+            HtmlElement::Image => "HTMLImageElement",
+            HtmlElement::Input => "HTMLInputElement",
+            HtmlElement::Keygen => "HTMLKeygenElement",
+            HtmlElement::Label => "HTMLLabelElement",
+            HtmlElement::Legend => "HTMLLegendElement",
+            HtmlElement::Li => "HTMLLIElement",
+            HtmlElement::Link => "HTMLLinkElement",
+            HtmlElement::Map => "HTMLMapElement",
+            HtmlElement::Marquee => "HTMLMarqueeElement",
+            HtmlElement::Menu => "HTMLMenuElement",
+            HtmlElement::MenuItem => "HTMLMenuItemElement",
+            HtmlElement::Meta => "HTMLMetaElement",
+            HtmlElement::Meter => "HTMLMeterElement",
+            HtmlElement::Mod => "HTMLModElement",
+            HtmlElement::Object => "HTMLObjectElement",
+            HtmlElement::OList => "HTMLOListElement",
+            HtmlElement::OptGroup => "HTMLOptGroupElement",
+            HtmlElement::Option => "HTMLOptionElement",
+            HtmlElement::Output => "HTMLOutputElement",
+            HtmlElement::Paragraph => "HTMLParagraphElement",
+            HtmlElement::Param => "HTMLParamElement",
+            HtmlElement::Picture => "HTMLPictureElement",
+            HtmlElement::Pre => "HTMLPreElement",
+            HtmlElement::Progress => "HTMLProgressElement",
+            HtmlElement::Quote => "HTMLQuoteElement",
+            HtmlElement::Select => "HTMLSelectElement",
+            HtmlElement::Shadow => "HTMLShadowElement",
+            HtmlElement::Source => "HTMLSourceElement",
+            HtmlElement::Span => "HTMLSpanElement",
+            HtmlElement::Style => "HTMLStyleElement",
+            HtmlElement::Table => "HTMLTableElement",
+            HtmlElement::TableCaption => "HTMLTableCaptionElement",
+            HtmlElement::TableCell => "HTMLTableCellElement",
+            HtmlElement::TableCol => "HTMLTableColElement",
+            HtmlElement::TableRow => "HTMLTableRowElement",
+            HtmlElement::TableSection => "HTMLTableSectionElement",
+            HtmlElement::Template => "HTMLTemplateElement",
+            HtmlElement::TextArea => "HTMLTextAreaElement",
+            HtmlElement::Time => "HTMLTimeElement",
+            HtmlElement::Title => "HTMLTitleElement",
+            HtmlElement::Track => "HTMLTrackElement",
+            HtmlElement::UList => "HTMLUListElement",
+            HtmlElement::Video => "HTMLVideoElement",
+            HtmlElement::Unknown => "HTMLUnknownElement",
+        };
+        write!(f, "{}", r)
+    }
+}
+
+#[derive(Clone, Copy, EnumString, Debug)]
+#[strum(serialize_all = "camelCase")]
+pub enum SvgElement {
+    A,
+    Animete,
+    AnimateMotion,
+    AnimateTransform,
+    Circle,
+    ClipPath,
+    Cursor,
+    Defs,
+    Desc,
+    Discard,
+    #[strum(
+        serialize = "altGlyph",
+        serialize = "altGlyphDef",
+        serialize = "altGlyphItem",
+        serialize = "animateColor",
+        serialize = "color-profile",
+        serialize = "font",
+        serialize = "font-face",
+        serialize = "font-face-format",
+        serialize = "font-face-name",
+        serialize = "font-face-src",
+        serialize = "font-face-uri",
+        serialize = "glyph",
+        serialize = "glyphRef",
+        serialize = "hatch",
+        serialize = "hatchpath",
+        serialize = "hkern",
+        serialize = "mesh",
+        serialize = "meshgradient",
+        serialize = "meshpatch",
+        serialize = "meshrow",
+        serialize = "metadata",
+        serialize = "missing-glyph",
+        serialize = "solidcolor",
+        serialize = "tref",
+        serialize = "unknow",
+        serialize = "vkern"
+    )]
+    E,
+    Ellipse,
+    FeBlend,
+    FeColorMatrix,
+    FeComponentTransfer,
+    FeComposite,
+    FeConvolveMatrix,
+    FeDiffuseLighting,
+    FeDisplacementMap,
+    FeDistantLight,
+    FeDropShadow,
+    FeFlood,
+    FeFuncA,
+    FeFuncB,
+    FeFuncG,
+    FeFuncR,
+    FeGaussianBlur,
+    FeImage,
+    FeMerge,
+    FeMergeNode,
+    FeMorphology,
+    FeOffset,
+    FePointLight,
+    FeSpecularLighting,
+    FeSpotLight,
+    FeTile,
+    FeTurbulence,
+    Filter,
+    ForeignObject,
+    Image,
+    Line,
+    LinearGradient,
+    Marker,
+    Mask,
+    MetaData,
+    MPath,
+    Path,
+    Pattern,
+    Polygon,
+    Polyline,
+    RadialGradient,
+    Rect,
+    Set,
+    Svg,
+    Stop,
+    Switch,
+    Symbol,
+    Text,
+    TextPath,
+    Title,
+    #[strum(serialize = "tspan")]
+    TSpan,
+    Use,
+    View,
+}
+
+impl Display for SvgElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let r = match self {
+            SvgElement::A => "SVGAElement",
+            SvgElement::Animete => "SVGAnimateElement",
+            SvgElement::AnimateMotion => "SVGAnimateMotionElement",
+            SvgElement::AnimateTransform => "SVGAnimateTransformElement",
+            SvgElement::Circle => "SVGCircleElement",
+            SvgElement::ClipPath => "SVGClipPathElement",
+            SvgElement::Cursor => "SVGCursorElement",
+            SvgElement::Defs => "SVGDefsElement",
+            SvgElement::Desc => "SVGDescElement",
+            SvgElement::Discard => "SVGDiscardElement",
+            SvgElement::E => "SVGElement",
+            SvgElement::Ellipse => "SVGEllipseElement",
+            SvgElement::FeBlend => "SVGFEBlendElement",
+            SvgElement::FeColorMatrix => "SVGFEColorMatrixElement",
+            SvgElement::FeComponentTransfer => "SVGFEComponentTransferElement",
+            SvgElement::FeComposite => "SVGFECompositeElement",
+            SvgElement::FeConvolveMatrix => "SVGFEConvolveMatrixElement",
+            SvgElement::FeDiffuseLighting => "SVGFEDiffuseLightingElement",
+            SvgElement::FeDisplacementMap => "SVGFEDisplacementMapElement",
+            SvgElement::FeDistantLight => "SVGFEDistantLightElement",
+            SvgElement::FeDropShadow => "SVGFEDropShadowElement",
+            SvgElement::FeFlood => "SVGFEFloodElement",
+            SvgElement::FeFuncA => "SVGFEFuncAElement",
+            SvgElement::FeFuncB => "SVGFEFuncBElement",
+            SvgElement::FeFuncG => "SVGFEFuncGElement",
+            SvgElement::FeFuncR => "SVGFEFuncRElement",
+            SvgElement::FeGaussianBlur => "SVGFEGaussianBlurElement",
+            SvgElement::FeImage => "SVGFEImageElement",
+            SvgElement::FeMerge => "SVGFEMergeElement",
+            SvgElement::FeMergeNode => "SVGFEMergeNodeElement",
+            SvgElement::FeMorphology => "SVGFEMorphologyElement",
+            SvgElement::FeOffset => "SVGFEOffsetElement",
+            SvgElement::FePointLight => "SVGFEPointLightElement",
+            SvgElement::FeSpecularLighting => "SVGFESpecularLightingElement",
+            SvgElement::FeSpotLight => "SVGFESpotLightElement",
+            SvgElement::FeTile => "SVGFETileElement",
+            SvgElement::FeTurbulence => "SVGFETurbulenceElement",
+            SvgElement::Filter => "SVGFilterElement",
+            SvgElement::ForeignObject => "SVGForeignObjectElement",
+            SvgElement::Image => "SVGImageElement",
+            SvgElement::Line => "SVGLineElement",
+            SvgElement::LinearGradient => "SVGLinearGradientElement",
+            SvgElement::Marker => "SVGMarkerElement",
+            SvgElement::Mask => "SVGMaskElement",
+            SvgElement::MetaData => "SVGMetadataElement",
+            SvgElement::MPath => "SVGMPathElement",
+            SvgElement::Path => "SVGPathElement",
+            SvgElement::Pattern => "SVGPatternElement",
+            SvgElement::Polygon => "SVGPolygonElement",
+            SvgElement::Polyline => "SVGPolylineElement",
+            SvgElement::RadialGradient => "SVGRadialGradientElement",
+            SvgElement::Rect => "SVGRectElement",
+            SvgElement::Set => "SVGSetElement",
+            SvgElement::Svg => "SVGSVGElemen",
+            SvgElement::Stop => "SVGStopElement",
+            SvgElement::Switch => "SVGSwitchElement",
+            SvgElement::Symbol => "SVGSymbolElement",
+            SvgElement::Text => "SVGTextElement",
+            SvgElement::TextPath => "SVGTextPathElement",
+            SvgElement::Title => "SVGTitleElement",
+            SvgElement::TSpan => "SVGTSpanElement",
+            SvgElement::Use => "SVGUseElement",
+            SvgElement::View => "SVGViewElement",
+        };
+        write!(f, "{}", r)
+    }
+}
+
+#[derive(Clone, Copy, EnumString, Debug)]
+pub enum MathMlElement {
+    #[strum(
+        serialize = "annotation",
+        serialize = "annotation-xml",
+        serialize = "maction",
+        serialize = "math",
+        serialize = "merror",
+        serialize = "mfrac",
+        serialize = "mi",
+        serialize = "mmultiscripts",
+        serialize = "mn",
+        serialize = "mo",
+        serialize = "mover",
+        serialize = "mpadded",
+        serialize = "mphantom",
+        serialize = "mprescripts",
+        serialize = "mroot",
+        serialize = "mrow",
+        serialize = "ms",
+        serialize = "mspace",
+        serialize = "msqrt",
+        serialize = "mstyle",
+        serialize = "msub",
+        serialize = "msubsup",
+        serialize = "msup",
+        serialize = "mstable",
+        serialize = "mtd",
+        serialize = "mtext",
+        serialize = "mtr",
+        serialize = "munder",
+        serialize = "munderover",
+        serialize = "none",
+        serialize = "semantics"
+    )]
+    Element,
+}
+
+impl Display for MathMlElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let r = match self {
+            MathMlElement::Element => "MathMLElement",
+        };
+        write!(f, "{}", r)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum Element {
+    Html(HtmlElement),
+    Svg(SvgElement),
+    MathMl(MathMlElement),
+}
+
+impl std::str::FromStr for Element {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(ok) = HtmlElement::from_str(s) {
+            Ok(Element::Html(ok))
+        } else if let Ok(ok) = SvgElement::from_str(s) {
+            Ok(Element::Svg(ok))
+        } else if let Ok(ok) = MathMlElement::from_str(s) {
+            Ok(Element::MathMl(ok))
+        } else {
+            Err(format!("Cannot from_str for '{}'", s))
+        }
+    }
+}
+
+impl Display for Element {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Element::Html(t) => write!(f, "{}", t),
+            Element::Svg(t) => write!(f, "{}", t),
+            Element::MathMl(t) => write!(f, "{}", t),
+        }
+    }
+}
