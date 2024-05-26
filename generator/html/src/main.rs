@@ -10,10 +10,17 @@ use clap::Parser;
 use domato::grammar::{Grammar, Variable};
 use element::{Element, HtmlElement};
 use rand::{seq::SliceRandom, thread_rng};
-use regex::{Captures, Regex};
+use regex::Captures;
 use strum::VariantNames;
 
 mod element;
+
+macro_rules! regex {
+    ($re:literal $(,)?) => {{
+        static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
+        RE.get_or_init(|| regex::Regex::new($re).unwrap())
+    }};
+}
 
 #[derive(Clone)]
 struct HtmlVariable {
@@ -150,7 +157,7 @@ fn generate_new_sample(
         .unwrap();
 
     let mut htmlctx = HtmlContext::default();
-    let re = Regex::new(r#"<[a-zA-Z0-9_-]+ "#).unwrap();
+    let re = regex!(r#"<[a-zA-Z0-9_-]+ "#);
     re.replace(&html, |m: &Captures| {
         let binding = m.get(0).unwrap().as_str();
         let tagname = &binding[1..binding.len() - 1];

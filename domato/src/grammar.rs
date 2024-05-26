@@ -12,7 +12,6 @@ use rand::{
     seq::{IteratorRandom, SliceRandom},
     thread_rng, Rng,
 };
-use regex::Regex;
 use strum::EnumString;
 use thiserror::Error;
 
@@ -20,6 +19,13 @@ use crate::{
     kind::{BuiltinKind, Kind},
     regex_utils::RegexSpit,
 };
+
+macro_rules! regex {
+    ($re:literal $(,)?) => {{
+        static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
+        RE.get_or_init(|| regex::Regex::new($re).unwrap())
+    }};
+}
 
 lazy_static! {
     static ref INT_RANGES: HashMap<&'static str, [i128; 2]> = HashMap::from([
@@ -136,16 +142,16 @@ impl Variable for BuiltinVariable {
 pub struct Rule {
     /// It should be named to `type` but `type` is conflicted with default rust's keyword
     kind: Kind,
-    pub parts: Vec<Tag>,
-    pub creates: Vec<Tag>,
+    pub parts: Vec<Rc<Tag>>,
+    pub creates: Vec<Rc<Tag>>,
     recursive: bool,
 }
 
 #[derive(Clone, Default)]
 struct Context {
     lastvar: u32,
-    lines: Vec<String>,
-    variables: HashMap<String, Vec<String>>,
+    lines: Vec<Rc<String>>,
+    variables: HashMap<String, Vec<Rc<String>>>,
     interesting_lines: Vec<u32>,
     force_var_reuse: bool,
 }
@@ -153,9 +159,9 @@ struct Context {
 #[derive(Clone)]
 pub struct Grammar {
     root: String,
-    pub creators: HashMap<String, Vec<Rule>>,
-    nonrecursive_creators: HashMap<String, Vec<Rule>>,
-    pub all_rules: Vec<Rule>,
+    pub creators: HashMap<String, Vec<Rc<Rule>>>,
+    pub nonrecursive_creators: HashMap<String, Vec<Rc<Rule>>>,
+    pub all_rules: Vec<Rc<Rule>>,
     interesting_lines: HashMap<String, Vec<u32>>,
     all_nonhelper_lines: Vec<u32>,
     creator_cdfs: HashMap<String, Vec<f32>>,
@@ -168,7 +174,7 @@ pub struct Grammar {
     var_reuse_prob: f32,
     interesting_line_prob: f32,
     max_vars_of_same_type: u32,
-    inheritance: HashMap<String, Vec<String>>,
+    inheritance: HashMap<String, Vec<Rc<String>>>,
     constant_types: HashMap<&'static str, char>,
 }
 
@@ -206,7 +212,7 @@ impl Grammar {
     }
 
     /// Generates integer types
-    fn generate_int(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_int(&self, tag: &Tag) -> Result<String, GrammarError> {
         let tag_name = tag.name.clone();
         let default_range = INT_RANGES
             .get(tag_name.as_str())
@@ -227,7 +233,7 @@ impl Grammar {
     }
 
     /// Generates floating point types
-    fn generate_float(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_float(&self, tag: &Tag) -> Result<String, GrammarError> {
         let min_value = tag.get_default("min", 0.0);
         let max_value = tag.get_default("max", 1.0);
         if min_value > max_value {
@@ -243,7 +249,7 @@ impl Grammar {
     }
 
     /// Generates a single character
-    fn generate_char(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_char(&self, tag: &Tag) -> Result<String, GrammarError> {
         if let Some(code) = tag.get("code") {
             return Ok(String::from(
                 code.parse::<u8>()
@@ -267,7 +273,7 @@ impl Grammar {
     }
 
     /// Generates a random string
-    fn generate_string(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_string(&self, tag: &Tag) -> Result<String, GrammarError> {
         let min_value: u8 = tag.get_default("min", 0);
         let max_value = tag.get_default("max", 255);
         if min_value > max_value {
@@ -297,12 +303,12 @@ impl Grammar {
     }
 
     /// Generates a random html string
-    fn generate_html_string(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_html_string(&self, tag: &Tag) -> Result<String, GrammarError> {
         Ok(html_escape::encode_safe(&self.generate_string(tag)?).to_string())
     }
 
     /// Generates a random hex string
-    fn generate_hex(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_hex(&self, tag: &Tag) -> Result<String, GrammarError> {
         let digit = thread_rng().gen_range(0..16);
         if tag.contains_key("up") {
             Ok(format!("{:#X}", digit))
@@ -312,7 +318,7 @@ impl Grammar {
     }
 
     /// Expands a symbol from another (imported) grammar
-    fn generate_import(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_import(&self, tag: &Tag) -> Result<String, GrammarError> {
         if let Some(grammarname) = tag.get("from") {
             if let Some(grammar) = self.imports.get(grammarname) {
                 if let Some(symbol) = tag.get("symbol") {
@@ -332,7 +338,7 @@ impl Grammar {
     }
 
     /// Generates a give number of lines of code
-    fn generate_lines(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_lines(&self, tag: &Tag) -> Result<String, GrammarError> {
         if tag.contains_key("count") {
             let num_lines = tag.get_default("count", 1);
             self.generate_code(num_lines, Vec::<BuiltinVariable>::new(), None)
@@ -401,7 +407,7 @@ impl Grammar {
     fn exec_function(
         &self,
         _function_name: String,
-        _attributes: Tag,
+        _attributes: &Tag,
         _context: &mut Context,
         _ret_val: String,
     ) -> String {
@@ -414,8 +420,8 @@ impl Grammar {
         symbol: &str,
         recursion_depth: u32,
         force_nonrecursive: bool,
-    ) -> Result<Rule, GrammarError> {
-        let creators: Vec<Rule>;
+    ) -> Result<Rc<Rule>, GrammarError> {
+        let creators: &Vec<Rc<Rule>>;
         if !self.creators.contains_key(symbol) {
             return Err(GrammarError::NoCreators(symbol.to_string()));
         }
@@ -425,12 +431,12 @@ impl Grammar {
         }
 
         let cdf = if force_nonrecursive && self.nonrecursive_creators.contains_key(symbol) {
-            creators = self.nonrecursive_creators.get(symbol).cloned().unwrap();
+            creators = self.nonrecursive_creators.get(symbol).unwrap();
             self.nonrecursivecreator_cdfs
                 .get(symbol)
                 .unwrap_or_else(|| panic!("Cannot get '{symbol}' from nonrecursivecreator_cdfs"))
         } else {
-            creators = self.creators.get(symbol).cloned().unwrap();
+            creators = self.creators.get(symbol).unwrap();
             self.creator_cdfs
                 .get(symbol)
                 .unwrap_or_else(|| panic!("Cannot get '{symbol}' from creator_cdfs"))
@@ -525,18 +531,14 @@ impl Grammar {
             } else if let Some(ctype) = self.constant_types.get(part.name.as_str()) {
                 expanded = ctype.to_string();
             } else if BuiltinKind::from_str(part.name.as_str()).is_ok() {
-                expanded = match self.generate_builtin_type(part.clone()) {
+                expanded = match self.generate_builtin_type(part) {
                     Ok(o) => o,
                     Err(e) => return Err(e),
                 };
             } else if part.name == "call" {
                 if let Some(function) = part.get("function") {
-                    expanded = self.exec_function(
-                        function.to_string(),
-                        part.clone(),
-                        context,
-                        String::new(),
-                    )
+                    expanded =
+                        self.exec_function(function.to_string(), part, context, String::new())
                 }
             } else if part.name == "any" && !context.variables.is_empty() {
                 expanded = self.get_any_var(context);
@@ -572,7 +574,7 @@ impl Grammar {
             }
 
             if let Some(before) = part.get("beforeoutput") {
-                expanded = self.exec_function(before.to_string(), part.clone(), context, expanded);
+                expanded = self.exec_function(before.to_string(), part, context, expanded);
             }
             ret_parts.push(expanded.clone());
         }
@@ -581,13 +583,13 @@ impl Grammar {
         for v in new_vars {
             if NONINTERESTING_TYPES.contains(&v.kind.to_string().as_str()) {
                 self.add_variable(&v.name, &v.kind.to_string(), context);
-                additional_lines.push(format!(
+                additional_lines.push(Rc::new(format!(
                     "if (!{}) {{{} = GetVariable(fuzzervars, {}); }} else {{ {} }}",
                     v.name,
                     v.name,
                     v.kind,
                     self.get_variable_setters(&v.name, &v.kind.to_string())
-                ));
+                )));
             }
         }
 
@@ -599,7 +601,7 @@ impl Grammar {
         if rule.kind == "grammar" {
             Ok(filled_rule)
         } else {
-            context.lines.push(filled_rule.clone());
+            context.lines.push(Rc::new(filled_rule.clone()));
             context.lines.append(&mut additional_lines);
             if symbol == "line" {
                 Ok(filled_rule)
@@ -626,12 +628,12 @@ impl Grammar {
         self.generate(name, &mut context, Some(0), None)
     }
 
-    fn get_cdf(&self, symbol: String, creators: &Vec<Rule>) -> Vec<f32> {
+    fn get_cdf(&self, symbol: String, creators: &Vec<Rc<Rule>>) -> Vec<f32> {
         let mut uniform = true;
         let mut probabilities = Vec::new();
         let mut defined = Vec::new();
         let mut cdf = Vec::new();
-        let mut create_tag = Tag::default();
+        let mut create_tag = &Tag::default();
 
         if symbol == "line" {
             // We can't currently set line probability
@@ -641,12 +643,12 @@ impl Grammar {
         // Get probabilities for individual rule
         for creator in creators {
             if creator.kind == "grammar" {
-                create_tag = creator.creates.first().unwrap().clone();
+                create_tag = creator.creates.first().unwrap();
             } else {
                 // For type=code multiple variables may be created
                 for tag in &creator.creates {
                     if tag.name == symbol {
-                        create_tag = tag.clone();
+                        create_tag = tag;
                         break;
                     }
                 }
@@ -764,7 +766,7 @@ impl Grammar {
         // spaces between tags/beginning/end are not a problem because
         // then empty strings will be returned in corresponding places,
         // for example "<foo><bar>" gets split into "", "foo", "", "bar"
-        let re = Regex::new(r"<([^>)]*)>").unwrap();
+        let re = regex!(r"<([^>)]*)>");
         let rule_parts: Vec<&str> = re.split_inclusive_iter(line).collect();
         for (i, part) in rule_parts.iter().enumerate() {
             if i % 2 == 0 {
@@ -774,10 +776,10 @@ impl Grammar {
                         ..Default::default()
                     };
                     tag.insert("text", part);
-                    rule.parts.push(tag);
+                    rule.parts.push(Rc::new(tag));
                 }
             } else {
-                let parsedtag = self.parse_tag_and_attributes(&part[1..part.len() - 1])?;
+                let parsedtag = Rc::new(self.parse_tag_and_attributes(&part[1..part.len() - 1])?);
                 rule.parts.push(parsedtag.clone());
                 if parsedtag.contains_key("new") {
                     rule.creates.push(parsedtag);
@@ -785,6 +787,7 @@ impl Grammar {
             }
         }
 
+        let rule = Rc::new(rule);
         for tag in &rule.creates {
             if NONINTERESTING_TYPES.contains(&tag.name.as_str()) {
                 continue;
@@ -818,19 +821,20 @@ impl Grammar {
 
     /// Parses a grammar rule
     fn parse_grammar_line(&mut self, line: &str) -> Result<(), GrammarError> {
-        let re = Regex::new(r"^<([^>]*)>\s*=\s*(.*)$").unwrap();
+        let re = regex!(r"^<([^>]*)>\s*=\s*(.*)$");
         let captures = re.captures(line).unwrap();
         if captures.len() != 3 {
             return Err(GrammarError::Parsing(line.to_string()));
         }
         let mut rule = Rule {
             kind: Kind::from("grammar"),
-            creates: vec![self
-                .parse_tag_and_attributes(captures.get(1).unwrap().as_str())
-                .unwrap()],
+            creates: vec![Rc::new(
+                self.parse_tag_and_attributes(captures.get(1).unwrap().as_str())
+                    .unwrap(),
+            )],
             ..Default::default()
         };
-        let re2 = Regex::new(r"<[^>)]*>").unwrap();
+        let re2 = regex!(r"<[^>)]*>");
         let rule_parts: Vec<&str> = re2
             .split_inclusive_iter(captures.get(2).unwrap().as_str())
             .collect();
@@ -851,10 +855,10 @@ impl Grammar {
                         ..Default::default()
                     };
                     tag.insert("text", part);
-                    rule.parts.push(tag);
+                    rule.parts.push(Rc::new(tag));
                 }
             } else {
-                let parsedtag = self.parse_tag_and_attributes(&part[1..part.len() - 1])?;
+                let parsedtag = Rc::new(self.parse_tag_and_attributes(&part[1..part.len() - 1])?);
                 rule.parts.push(parsedtag.clone());
                 if let Some(first) = rule.creates.first() {
                     if parsedtag.name == first.name {
@@ -864,6 +868,7 @@ impl Grammar {
             }
         }
 
+        let rule = Rc::new(rule);
         // Store the rule in appropriate sets
         let tag = rule.creates.first().unwrap();
         if let Some(creator) = self.creators.get_mut(&tag.name) {
@@ -962,7 +967,7 @@ impl Grammar {
         self.inheritance
             .get_mut(objectname)
             .unwrap()
-            .push(parentname.to_string());
+            .push(Rc::new(parentname.to_string()));
         Ok(())
     }
 
@@ -993,8 +998,8 @@ impl Grammar {
         let lines = grammar_str.lines();
         let mut function_body = String::new();
         let mut function_name = "";
-        let re1 = Regex::new(r"^!([a-z_]+)\s*(.*)$").unwrap();
-        let re2 = Regex::new(r"^function\s*([a-zA-Z._0-9]+)$").unwrap();
+        let re1 = regex!(r"^!([a-z_]+)\s*(.*)$");
+        let re2 = regex!(r"^function\s*([a-zA-Z._0-9]+)$");
         for line in lines {
             let mut cleanline = line;
             if !in_function {
@@ -1138,7 +1143,7 @@ impl Grammar {
             }
         }
         if let Some(vars) = context.variables.get_mut(var_type) {
-            vars.push(var_name.to_string());
+            vars.push(Rc::new(var_name.to_string()));
         }
 
         if let Some(types) = self.inheritance.get(var_type) {
@@ -1174,7 +1179,7 @@ impl Grammar {
             .to_string()
     }
 
-    fn generate_builtin_type(&self, tag: Tag) -> Result<String, GrammarError> {
+    fn generate_builtin_type(&self, tag: &Tag) -> Result<String, GrammarError> {
         match BuiltinKind::from_str(&tag.name) {
             Ok(t) => match t {
                 BuiltinKind::Int => self.generate_int(tag),
