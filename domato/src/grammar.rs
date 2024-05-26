@@ -178,6 +178,12 @@ pub struct Grammar {
     constant_types: HashMap<&'static str, char>,
 }
 
+impl Default for Grammar {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Grammar {
     pub fn new() -> Self {
         Self {
