@@ -233,8 +233,12 @@ impl Grammar {
             );
         }
 
+        // TODO
+        if tag.contains_key("b") || tag.contains_key("be") {
+            todo!("Need to implement packing integer");
+        }
+
         let i = thread_rng().gen_range(min_value..=max_value);
-        // TODO: missing packing int here
         Ok(i.to_string())
     }
 
@@ -249,8 +253,12 @@ impl Grammar {
             );
         }
 
+        // TODO
+        if tag.contains_key("b") || tag.contains_key("be") {
+            todo!("Need to implement packing float");
+        }
+
         let f = min_value + rand::random::<f64>() * (max_value - min_value);
-        // TODO: missing packing float here
         Ok(f.to_string())
     }
 
@@ -317,9 +325,9 @@ impl Grammar {
     fn generate_hex(&self, tag: &Tag) -> Result<String, GrammarError> {
         let digit = thread_rng().gen_range(0..16);
         if tag.contains_key("up") {
-            Ok(format!("{:#X}", digit))
+            Ok(format!("{:X}", digit))
         } else {
-            Ok(format!("{:#x}", digit))
+            Ok(format!("{:x}", digit))
         }
     }
 
